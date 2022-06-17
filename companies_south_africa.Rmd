@@ -1,0 +1,101 @@
+---
+title: "South Africa's Large Companies"
+author: "Mpilo Khumalo"
+date: '2022-06-16'
+output: html_document
+---
+
+## Loading Packages
+
+```{r, results='hide', warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(lubridate)
+library(plyr)
+library(rvest)
+library(stringr)
+
+```
+
+## Loading Raw Data
+
+```{r}
+
+#carbon_footprint_data <- read.csv("carbon_footprint.csv", sep = ",", header = T)
+
+```
+
+## Web Scraping Large South African Companies Data
+
+```{r results='hide', warning=FALSE, message=FALSE}
+
+link = "https://en.wikipedia.org/wiki/List_of_largest_companies_in_South_Africa"
+page = read_html(link)
+
+companies_south_africa = page %>% html_nodes("td , .headerSort") %>% html_text
+
+```
+
+## Cleaning Large South African Companies Data
+
+```{r results='hide', warning=FALSE, message=FALSE}
+companies_south_africa_df <- as.data.frame(companies_south_africa, header = T)
+
+companies_south_africa_df <- mutate(companies_south_africa_df, div = rep(1:9, each = 1, times = 14))
+
+Rank <- filter(companies_south_africa_df, div == 1)
+Forbes_rank <- filter(companies_south_africa_df, div == 2)
+Name <- filter(companies_south_africa_df, div == 3)
+Headquarters <- filter(companies_south_africa_df, div == 4)
+Revenue <- filter(companies_south_africa_df, div == 5)
+Profit <- filter(companies_south_africa_df, div == 6)
+Assets <- filter(companies_south_africa_df, div == 7)
+Value <- filter(companies_south_africa_df, div == 8)
+Industry <- filter(companies_south_africa_df, div == 9)
+
+companies_south_africa_df <- cbind(Rank, Forbes_rank, Name, Headquarters, Revenue, Profit, Assets, Value, Industry)
+
+companies_south_africa_df <- companies_south_africa_df[,-seq(from = 2, to = 18, by = 2)]
+
+colnames(companies_south_africa_df) <- c("Rank", "Forbes_rank", "Name", "Headquarters", "Revenue", "Profit", "Assets", "Value", "Industry")
+
+companies_south_africa_df$Rank <- str_replace_all(companies_south_africa_df$Rank, "[\r\n]" , "")
+companies_south_africa_df$Forbes_rank <- str_replace_all(companies_south_africa_df$Forbes_rank, "[\r\n]" , "")
+companies_south_africa_df$Name <- str_replace_all(companies_south_africa_df$Name, "[\r\n]" , "")
+companies_south_africa_df$Name <- str_replace_all(companies_south_africa_df$Name, " " , "_")
+companies_south_africa_df$Headquarters <- str_replace_all(companies_south_africa_df$Headquarters, "[\r\n]" , "")
+companies_south_africa_df$Headquarters <- str_replace_all(companies_south_africa_df$Headquarters, " " , "_")
+companies_south_africa_df$Revenue <- str_replace_all(companies_south_africa_df$Revenue, "[\r\n]" , "")
+companies_south_africa_df$Profit <- str_replace_all(companies_south_africa_df$Profit, "[\r\n]" , "")
+companies_south_africa_df$Assets <- str_replace_all(companies_south_africa_df$Assets, "[\r\n]" , "")
+companies_south_africa_df$Value <- str_replace_all(companies_south_africa_df$Value, "[\r\n]" , "")
+companies_south_africa_df$Industry <- str_replace_all(companies_south_africa_df$Industry, "[\r\n]" , "")
+companies_south_africa_df$Industry <- str_replace_all(companies_south_africa_df$Industry, " " , "_")
+
+companies_south_africa_df[1, 4] <- "Johannesburg"
+
+companies_south_africa_df$Revenue <- as.numeric(companies_south_africa_df$Revenue)
+companies_south_africa_df$Profit <- as.numeric(companies_south_africa_df$Profit)
+companies_south_africa_df$Assets <- as.numeric(companies_south_africa_df$Assets)
+companies_south_africa_df$Value <- as.numeric(companies_south_africa_df$Value)
+
+attach(companies_south_africa_df)
+
+```
+
+## Data Visualisations
+
+### Large South African Companies
+
+```{r}
+(graph1 <- ggplot(companies_south_africa_df, aes(reorder(Name, -Revenue), Revenue, fill = Industry)) +
+  geom_bar(stat="identity", position = "dodge") + 
+  labs(x = "Name", y = "Revenue (Billion US $)") +  
+  theme(panel.background = element_rect(),
+        axis.text.x=element_text(angle=45, hjust=1), axis.line = element_line(colour ="black")))
+ggsave(filename = "companies_south_africa_South_Africa.png", graph1)
+
+```
