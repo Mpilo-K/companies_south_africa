@@ -93,7 +93,7 @@ attach(companies_south_africa_df)
 ```{r}
 (graph1 <- ggplot(companies_south_africa_df, aes(reorder(Name, -Revenue), Revenue, fill = Industry)) +
   geom_bar(stat="identity", position = "dodge") + 
-  labs(x = "Name", y = "Revenue (Billion US $)") +  
+  labs(x = "Company name", y = "Revenue (Billion US $)") +  
   theme(panel.background = element_rect(),
         axis.text.x=element_text(angle=45, hjust=1), axis.line = element_line(colour ="black")))
 ggsave(filename = "companies_south_africa_South_Africa.png", graph1)
